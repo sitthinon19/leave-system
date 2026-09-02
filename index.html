@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-  <meta charset="utf-8">
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ระบบลางานออนไลน์</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -177,7 +175,7 @@
     <!-- ========================================= -->
     <form id="registerForm" style="display:none;">
 
-      <p class="hint">ยังไม่พบข้อมูลของคุณในระบบ กรุณากรอกข้อมูลเพื่อสมัครสมาชิก [...]
+      <p class="hint">ยังไม่พบข้อมูลของคุณในระบบ กรุณากรอกข้อมูลเพื่อสมัครสมาชิก แล้วรอ HR อนุมัติ หากยังไม่มีรายชื่อหัวหน้างาน HR สามารถเติมในชีตภายหลังได้</p>
 
       <label>รหัสพนักงาน (ถ้ามี)</label>
       <input type="text" id="regEmployeeId" placeholder="เช่น EMP001">
@@ -255,7 +253,7 @@
     <!-- ========================================= -->
     <form id="rejectForm" style="display:none;">
 
-      <p class="hint">กรุณาระบุเหตุผลที่ไม่อนุมัติ ระบบจะบันทึกเหตุผลและแจ้งพนัก�[...]
+      <p class="hint">กรุณาระบุเหตุผลที่ไม่อนุมัติ ระบบจะบันทึกเหตุผลและแจ้งพนักงานผ่าน LINE</p>
 
       <label>เหตุผลที่ไม่อนุมัติ *</label>
       <textarea id="rejectReason" required placeholder="กรุณาระบุเหตุผล"></textarea>
@@ -292,7 +290,7 @@
       showDebug('เริ่ม LIFF init\nLIFF_ID: ' + LIFF_ID + '\nURL: ' + location.href);
 
       if (!window.liff) {
-        throw new Error('โหลด LIFF SDK ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วเปิดผ่าน LIFF URL ��[...]');
+        throw new Error('โหลด LIFF SDK ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วเปิดผ่าน LIFF URL อีกครั้ง');
       }
 
       await liff.init({
@@ -554,7 +552,7 @@
 
   async function submitRegister() {
     if (!liffReady || !idToken) {
-      showMessageIn('registerMessage', 'ยังไม่สามารถยืนยัน LINE ได้\nกรุณารอสักครู่แล้วลองใหม่', false)[...]
+      showMessageIn('registerMessage', 'ยังไม่สามารถยืนยัน LINE ได้\nกรุณารอสักครู่แล้วลองใหม่', false);
       return;
     }
 
