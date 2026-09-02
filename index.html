@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ระบบลางานออนไลน์</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Noto Sans Thai", sans-serif;
+      background: #f5f6f8;
+      color: #222;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      background: white;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: #06c755;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    button.danger {
+      background: #c62828;
+    }
+
+    .user {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #555;
+    }
+
+    .message {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      white-space: pre-line;
+    }
+
+    .success { background: #e8f7ed; color: #137333; }
+    .error { background: #fdecec; color: #c62828; }
+
+    .loading { text-align: center; padding: 20px; }
+
+    .pending-box {
+      text-align: center;
+      padding: 10px;
+    }
+
+    .pending-box .icon { font-size: 48px; }
+
+    .hint {
+      font-size: 13px;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    .balance-panel {
+      display: none;
+      margin: 4px 0 18px;
+      padding: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #f9fafb;
+    }
+
+    .balance-title {
+      margin: 0 0 10px;
+      font-weight: bold;
+    }
+
+    .balance-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .balance-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: white;
+      border: 1px solid #edf0f2;
+    }
+
+    .balance-days {
+      flex: 0 0 auto;
+      font-weight: bold;
+      color: #06a647;
+    }
+
+    .debug {
+      display: none;
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      background: #fff7e6;
+      color: #7a4b00;
+      font-size: 12px;
+      word-break: break-word;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+
+    <h1>📋 ระบบลางานออนไลน์</h1>
+
+    <div id="userInfo" class="user">กำลังตรวจสอบ LINE...</div>
+
+    <div id="loadingSection" class="loading" style="display:none;">
+      กำลังโหลดข้อมูล...
+    </div>
+
+    <div id="debugInfo" class="debug"></div>
+
+    <!-- ========================================= -->
+    <!-- สถานะ: ยังไม่มีข้อมูลในระบบ -> ฟอร์มสมัครสมาชิก -->
+    <!-- ========================================= -->
+    <form id="registerForm" style="display:none;">
+
+      <p class="hint">ยังไม่พบข้อมูลของคุณในระบบ กรุณากรอกข้อมูลเพื่อสมัครสมาชิก แล้วรอ HR อนุมัติ หากยังไม่มีรายชื่อหัวหน้างาน HR สามารถเติมในชีตภายหลังได้</p>
+
+      <label>รหัสพนักงาน (ถ้ามี)</label>
+      <input type="text" id="regEmployeeId" placeholder="เช่น EMP001">
+
+      <label>ชื่อ-นามสกุล *</label>
+      <input type="text" id="regEmployeeName" required>
+
+      <label>แผนก *</label>
+      <input type="text" id="regDepartment" required>
+
+      <label>ตำแหน่ง</label>
+      <input type="text" id="regPosition">
+
+      <label>หัวหน้างาน Level 1</label>
+      <select id="regSupervisor1">
+        <option value="">-- ยังไม่ระบุ --</option>
+      </select>
+
+      <label>หัวหน้างาน Level 2 (ถ้ามี)</label>
+      <select id="regSupervisor2">
+        <option value="">-- ไม่มี --</option>
+      </select>
+
+      <button id="registerBtn" type="submit">ส่งข้อมูลสมัครสมาชิก</button>
+
+      <div id="registerMessage" class="message"></div>
+    </form>
+
+    <!-- ========================================= -->
+    <!-- สถานะ: รอ HR อนุมัติ -->
+    <!-- ========================================= -->
+    <div id="pendingSection" class="pending-box" style="display:none;">
+      <div class="icon">⏳</div>
+      <h2>รอการอนุมัติ</h2>
+      <p>ข้อมูลของคุณถูกส่งเข้าระบบแล้ว กำลังรอ HR ตรวจสอบและอนุมัติ<br>
+      เมื่ออนุมัติแล้วระบบจะแจ้งเตือนผ่าน LINE ให้ทราบ</p>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- สถานะ: Active -> ฟอร์มยื่นลาตามปกติ -->
+    <!-- ========================================= -->
+    <form id="leaveForm" style="display:none;">
+
+      <div id="balancePanel" class="balance-panel">
+        <p class="balance-title">วันลาคงเหลือ</p>
+        <div id="balanceList" class="balance-list"></div>
+      </div>
+
+      <label>ประเภทการลา</label>
+      <select id="leaveType" required>
+        <option value="">-- เลือกประเภทการลา --</option>
+        <option value="ANNUAL">ลาพักร้อน</option>
+        <option value="SICK">ลาป่วย</option>
+        <option value="PERSONAL">ลากิจ</option>
+        <option value="MATERNITY">ลาคลอด</option>
+      </select>
+      <p id="selectedBalanceHint" class="hint"></p>
+
+      <label>วันที่เริ่มลา</label>
+      <input type="date" id="startDate" required>
+
+      <label>วันที่สิ้นสุด</label>
+      <input type="date" id="endDate" required>
+
+      <label>เหตุผล</label>
+      <textarea id="reason" placeholder="กรุณาระบุเหตุผลการลา"></textarea>
+
+      <button id="submitBtn" type="submit">ส่งคำขอลา</button>
+
+      <div id="message" class="message"></div>
+    </form>
+
+    <!-- ========================================= -->
+    <!-- หน้าไม่อนุมัติ: เปิดจากลิงก์ใน LINE ผ่าน Netlify -->
+    <!-- ========================================= -->
+    <form id="rejectForm" style="display:none;">
+
+      <p class="hint">กรุณาระบุเหตุผลที่ไม่อนุมัติ ระบบจะบันทึกเหตุผลและแจ้งพนักงานผ่าน LINE</p>
+
+      <label>เหตุผลที่ไม่อนุมัติ *</label>
+      <textarea id="rejectReason" required placeholder="กรุณาระบุเหตุผล"></textarea>
+
+      <button id="rejectBtn" class="danger" type="submit">ยืนยันไม่อนุมัติ</button>
+
+      <div id="rejectMessage" class="message"></div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  const LIFF_ID = '2011333828-5qZ3k9TW';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxLjeY6oJ-BnaoIOSSgJa-h88JCne8XQH-5-HJiU7p9GH51WcBPjCE0oyX7zn1vaByiCA/exec';
+
+  let idToken = null;
+  let liffReady = false;
+  let supervisorList = [];
+  let leaveBalances = [];
+  let rejectToken = '';
+
+  /***********************************************
+   * INIT LIFF
+   ***********************************************/
+  async function init() {
+    try {
+      if (isRejectPage()) {
+        showRejectPage();
+        return;
+      }
+
+      document.getElementById('userInfo').textContent = 'กำลังเชื่อมต่อ LINE...';
+      showDebug('เริ่ม LIFF init\nLIFF_ID: ' + LIFF_ID + '\nURL: ' + location.href);
+
+      if (!window.liff) {
+        throw new Error('โหลด LIFF SDK ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วเปิดผ่าน LIFF URL อีกครั้ง');
+      }
+
+      await liff.init({
+        liffId: LIFF_ID
+      });
+
+      liffReady = true;
+      showDebug(
+        'LIFF init สำเร็จ\n' +
+        'isInClient: ' + liff.isInClient() + '\n' +
+        'isLoggedIn: ' + liff.isLoggedIn() + '\n' +
+        'OS: ' + liff.getOS() + '\n' +
+        'Language: ' + liff.getLanguage()
+      );
+
+      if (!liff.isLoggedIn()) {
+        liff.login({ redirectUri: location.href });
+        return;
+      }
+
+      idToken = liff.getIDToken();
+
+      if (!idToken) {
+        throw new Error('ไม่สามารถรับ LINE ID Token ได้ กรุณาตรวจสอบว่า LIFF มี scope openid และ profile');
+      }
+
+      try {
+        const profile = await liff.getProfile();
+        document.getElementById('userInfo').textContent =
+          'สวัสดี ' + (profile.displayName || 'ผู้ใช้งาน');
+
+        // เตรียมชื่อเริ่มต้นในฟอร์มสมัครสมาชิกจาก LINE displayName
+        const regNameField = document.getElementById('regEmployeeName');
+        if (regNameField && !regNameField.value) {
+          regNameField.value = profile.displayName || '';
+        }
+      } catch (profileError) {
+        showDebug('อ่าน profile ไม่สำเร็จ: ' + (profileError.message || profileError));
+        document.getElementById('userInfo').textContent = 'เชื่อมต่อ LINE สำเร็จ';
+      }
+
+      checkStatus();
+
+    } catch (err) {
+      console.error('LIFF INIT ERROR:', err);
+      document.getElementById('loadingSection').style.display = 'none';
+      document.getElementById('userInfo').textContent = 'ไม่สามารถเชื่อมต่อ LINE ได้';
+      showDebug('LIFF ERROR: ' + (err && err.message ? err.message : err));
+      showMessageIn('registerMessage', err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ LINE', false);
+      document.getElementById('registerForm').style.display = 'block';
+    }
+  }
+  function showDebug(text) {
+    console.log(text);
+  }
+
+  function isRejectPage() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('action') === 'reject';
+  }
+
+  function showRejectPage() {
+    const params = new URLSearchParams(window.location.search);
+    rejectToken = params.get('token') || '';
+
+    document.getElementById('userInfo').textContent = 'ไม่อนุมัติคำขอลา';
+    document.getElementById('loadingSection').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('pendingSection').style.display = 'none';
+    document.getElementById('leaveForm').style.display = 'none';
+    document.getElementById('rejectForm').style.display = 'block';
+
+    if (!rejectToken) {
+      document.getElementById('rejectBtn').disabled = true;
+      showMessageIn('rejectMessage', 'ไม่พบ Approval Token กรุณาเปิดจากปุ่มใน LINE อีกครั้ง', false);
+    }
+  }
+
+  async function apiCall(payload) {
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error('Apps Script API error: HTTP ' + response.status);
+    }
+
+    return response.json();
+  }
+  /***********************************************
+   * ตรวจสอบสถานะผู้ใช้ -> เลือกว่าจะโชว์หน้าจอไหน
+   ***********************************************/
+  async function checkStatus() {
+    if (!liffReady || !idToken) {
+      return;
+    }
+
+    document.getElementById('loadingSection').style.display = 'block';
+
+    try {
+      const result = await apiCall({
+        action: 'checkEmployeeStatus',
+        idToken: idToken
+      });
+
+      document.getElementById('loadingSection').style.display = 'none';
+
+      if (!result || !result.success) {
+        showMessageIn(
+          'registerMessage',
+          result && result.message ? result.message : 'เกิดข้อผิดพลาดในการตรวจสอบสถานะ',
+          false
+        );
+        document.getElementById('registerForm').style.display = 'block';
+        return;
+      }
+
+      if (result.status === 'active') {
+        leaveBalances =
+          result.employee && result.employee.leaveBalances
+            ? result.employee.leaveBalances
+            : [];
+        renderLeaveBalances();
+        document.getElementById('leaveForm').style.display = 'block';
+
+      } else if (result.status === 'pending') {
+        document.getElementById('pendingSection').style.display = 'block';
+
+      } else if (result.status === 'not_found') {
+        supervisorList = result.supervisors || [];
+        renderSupervisorOptions();
+        document.getElementById('registerForm').style.display = 'block';
+      }
+    } catch (error) {
+      document.getElementById('loadingSection').style.display = 'none';
+      showMessageIn(
+        'registerMessage',
+        error && error.message ? error.message : 'เกิดข้อผิดพลาดในการตรวจสอบสถานะ',
+        false
+      );
+      document.getElementById('registerForm').style.display = 'block';
+    }
+  }
+
+  /***********************************************
+   * เติมตัวเลือกหัวหน้างานใน dropdown
+   ***********************************************/
+  function renderSupervisorOptions() {
+    const sel1 = document.getElementById('regSupervisor1');
+    const sel2 = document.getElementById('regSupervisor2');
+
+    sel1.innerHTML = '<option value="">-- ยังไม่ระบุ --</option>';
+    sel2.innerHTML = '<option value="">-- ไม่มี --</option>';
+
+    if (!supervisorList.length) {
+      const opt1 = document.createElement('option');
+      opt1.value = '';
+      opt1.textContent = 'ยังไม่มีรายชื่อหัวหน้างานในระบบ';
+      opt1.disabled = true;
+      sel1.appendChild(opt1);
+      return;
+    }
+
+    supervisorList.forEach(function(sv, i) {
+      const label = sv.employeeName + (sv.department ? ' (' + sv.department + ')' : '');
+
+      const opt1 = document.createElement('option');
+      opt1.value = i;
+      opt1.textContent = label;
+      sel1.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = i;
+      opt2.textContent = label;
+      sel2.appendChild(opt2);
+    });
+  }
+
+  /***********************************************
+   * แสดงวันลาคงเหลือ
+   ***********************************************/
+  function renderLeaveBalances() {
+    const panel = document.getElementById('balancePanel');
+    const list = document.getElementById('balanceList');
+
+    if (!panel || !list || !leaveBalances.length) {
+      return;
+    }
+
+    list.innerHTML = '';
+
+    leaveBalances.forEach(function(item) {
+      const row = document.createElement('div');
+      row.className = 'balance-row';
+
+      const label = document.createElement('span');
+      label.textContent = item.label || item.type;
+
+      const days = document.createElement('span');
+      days.className = 'balance-days';
+      days.textContent = formatRemainingDays(item.remaining);
+
+      row.appendChild(label);
+      row.appendChild(days);
+      list.appendChild(row);
+    });
+
+    panel.style.display = 'block';
+    updateSelectedBalanceHint();
+  }
+
+  function updateSelectedBalanceHint() {
+    const leaveType = document.getElementById('leaveType').value;
+    const hint = document.getElementById('selectedBalanceHint');
+
+    if (!hint) {
+      return;
+    }
+
+    const balance = findLeaveBalance(leaveType);
+
+    if (!leaveType || !balance) {
+      hint.textContent = '';
+      return;
+    }
+
+    hint.textContent =
+      'คงเหลือสำหรับ ' +
+      (balance.label || leaveType) +
+      ': ' +
+      formatRemainingDays(balance.remaining);
+  }
+
+  function findLeaveBalance(type) {
+    return leaveBalances.find(function(item) {
+      return item.type === type;
+    });
+  }
+
+  function formatRemainingDays(value) {
+    if (value === null || value === undefined || value === '') {
+      return 'ไม่จำกัด';
+    }
+
+    return Number(value) + ' วัน';
+  }
+
+  /***********************************************
+   * SUBMIT: สมัครสมาชิก
+   ***********************************************/
+  document.getElementById('registerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitRegister();
+  });
+
+  async function submitRegister() {
+    if (!liffReady || !idToken) {
+      showMessageIn('registerMessage', 'ยังไม่สามารถยืนยัน LINE ได้\nกรุณารอสักครู่แล้วลองใหม่', false);
+      return;
+    }
+
+    const employeeName = document.getElementById('regEmployeeName').value.trim();
+    const department = document.getElementById('regDepartment').value.trim();
+    const position = document.getElementById('regPosition').value.trim();
+    const employeeId = document.getElementById('regEmployeeId').value.trim();
+    const sv1Index = document.getElementById('regSupervisor1').value;
+    const sv2Index = document.getElementById('regSupervisor2').value;
+
+    if (!employeeName) {
+      showMessageIn('registerMessage', 'กรุณากรอกชื่อ-นามสกุล', false);
+      return;
+    }
+
+    if (!department) {
+      showMessageIn('registerMessage', 'กรุณากรอกแผนก', false);
+      return;
+    }
+
+    const sv1 = sv1Index !== '' ? supervisorList[sv1Index] : null;
+    const sv2 = sv2Index !== '' ? supervisorList[sv2Index] : null;
+
+    const btn = document.getElementById('registerBtn');
+    btn.disabled = true;
+    btn.textContent = 'กำลังส่งข้อมูล...';
+
+    showMessageIn('registerMessage', 'กำลังส่งข้อมูลสมัครสมาชิก...', true);
+
+    try {
+      const result = await apiCall({
+        action: 'registerEmployee',
+        idToken: idToken,
+        employeeId: employeeId,
+        employeeName: employeeName,
+        department: department,
+        position: position,
+        supervisor1Id: sv1 ? sv1.employeeId : '',
+        supervisor1LineUid: sv1 ? sv1.lineUid : '',
+        supervisor2Id: sv2 ? sv2.employeeId : '',
+        supervisor2LineUid: sv2 ? sv2.lineUid : ''
+      });
+
+      btn.disabled = false;
+      btn.textContent = 'ส่งข้อมูลสมัครสมาชิก';
+
+      if (!result || !result.success) {
+        showMessageIn(
+          'registerMessage',
+          result && result.message ? result.message : 'ไม่สามารถส่งข้อมูลได้',
+          false
+        );
+        return;
+      }
+
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('pendingSection').style.display = 'block';
+    } catch (error) {
+      btn.disabled = false;
+      btn.textContent = 'ส่งข้อมูลสมัครสมาชิก';
+      showMessageIn(
+        'registerMessage',
+        error && error.message ? error.message : 'เกิดข้อผิดพลาดในการส่งข้อมูล',
+        false
+      );
+    }
+  }
+
+  /***********************************************
+   * SUBMIT: ยื่นคำขอลา (เดิม)
+   ***********************************************/
+  document.getElementById('leaveForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitLeave();
+  });
+
+  document.getElementById('leaveType').addEventListener('change', function() {
+    updateSelectedBalanceHint();
+  });
+
+  document.getElementById('rejectForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitReject();
+  });
+
+  async function submitReject() {
+    const reason = document.getElementById('rejectReason').value.trim();
+
+    if (!rejectToken) {
+      showMessageIn('rejectMessage', 'ไม่พบ Approval Token กรุณาเปิดจากปุ่มใน LINE อีกครั้ง', false);
+      return;
+    }
+
+    if (!reason) {
+      showMessageIn('rejectMessage', 'กรุณาระบุเหตุผลที่ไม่อนุมัติ', false);
+      return;
+    }
+
+    const btn = document.getElementById('rejectBtn');
+    btn.disabled = true;
+    btn.textContent = 'กำลังบันทึก...';
+
+    showMessageIn('rejectMessage', 'กำลังบันทึกผลไม่อนุมัติ...', true);
+
+    try {
+      const result = await apiCall({
+        action: 'rejectLeave',
+        token: rejectToken,
+        rejectionReason: reason
+      });
+
+      btn.disabled = false;
+      btn.textContent = 'ยืนยันไม่อนุมัติ';
+
+      if (!result || !result.success) {
+        showMessageIn(
+          'rejectMessage',
+          result && result.message ? result.message : 'ไม่สามารถบันทึกผลไม่อนุมัติได้',
+          false
+        );
+        return;
+      }
+
+      btn.disabled = true;
+      showMessageIn(
+        'rejectMessage',
+        result.message || 'บันทึกผลไม่อนุมัติเรียบร้อยแล้ว',
+        true
+      );
+    } catch (error) {
+      btn.disabled = false;
+      btn.textContent = 'ยืนยันไม่อนุมัติ';
+      showMessageIn(
+        'rejectMessage',
+        error && error.message ? error.message : 'เกิดข้อผิดพลาดในการบันทึกผลไม่อนุมัติ',
+        false
+      );
+    }
+  }
+
+  async function submitLeave() {
+    if (!liffReady || !idToken) {
+      showMessageIn('message', 'ยังไม่สามารถยืนยัน LINE ได้\nกรุณารอสักครู่แล้วลองใหม่', false);
+      return;
+    }
+
+    const leaveType = document.getElementById('leaveType').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const reason = document.getElementById('reason').value.trim();
+
+    if (!leaveType) {
+      showMessageIn('message', 'กรุณาเลือกประเภทการลา', false);
+      return;
+    }
+    if (!startDate) {
+      showMessageIn('message', 'กรุณาเลือกวันที่เริ่มลา', false);
+      return;
+    }
+    if (!endDate) {
+      showMessageIn('message', 'กรุณาเลือกวันที่สิ้นสุด', false);
+      return;
+    }
+    if (endDate < startDate) {
+      showMessageIn('message', 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มลา', false);
+      return;
+    }
+
+    const balance = findLeaveBalance(leaveType);
+    const requestedDays = calculateLeaveDays(startDate, endDate);
+
+    if (
+      balance &&
+      balance.remaining !== null &&
+      balance.remaining !== undefined &&
+      requestedDays > Number(balance.remaining)
+    ) {
+      showMessageIn(
+        'message',
+        'วันลาคงเหลือไม่เพียงพอ\nคงเหลือ: ' +
+          formatRemainingDays(balance.remaining) +
+          '\nจำนวนที่ขอ: ' +
+          requestedDays +
+          ' วัน',
+        false
+      );
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'กำลังส่งข้อมูล...';
+
+    showMessageIn('message', 'กำลังบันทึกคำขอลา...', true);
+
+    try {
+      const result = await apiCall({
+        action: 'submitLeave',
+        idToken: idToken,
+        leaveType: leaveType,
+        startDate: startDate,
+        endDate: endDate,
+        reason: reason
+      });
+
+      btn.disabled = false;
+      btn.textContent = 'ส่งคำขอลา';
+
+      if (!result || !result.success) {
+        showMessageIn(
+          'message',
+          result && result.message ? result.message : 'ไม่สามารถส่งข้อมูลได้',
+          false
+        );
+        return;
+      }
+
+      showMessageIn(
+        'message',
+        'ส่งคำขอลาเรียบร้อยแล้ว\nเลขที่คำขอ: ' + result.requestId,
+        true
+      );
+
+      document.getElementById('leaveForm').reset();
+      updateSelectedBalanceHint();
+    } catch (error) {
+      btn.disabled = false;
+      btn.textContent = 'ส่งคำขอลา';
+
+      showMessageIn(
+        'message',
+        error && error.message ? error.message : 'เกิดข้อผิดพลาดในการส่งข้อมูล',
+        false
+      );
+    }
+  }
+
+  /***********************************************
+   * MESSAGE HELPER
+   ***********************************************/
+  function showMessageIn(elementId, text, success) {
+    const box = document.getElementById(elementId);
+    box.style.display = 'block';
+    box.className = 'message ' + (success ? 'success' : 'error');
+    box.textContent = text;
+  }
+
+  function calculateLeaveDays(startDate, endDate) {
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const diff = end.getTime() - start.getTime();
+
+    return Math.floor(diff / 86400000) + 1;
+  }
+
+  /***********************************************
+   * START
+   ***********************************************/
+  init();
+</script>
+</body>
+</html>
