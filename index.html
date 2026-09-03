@@ -109,7 +109,7 @@
 
     .leave-period {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin-top: 6px;
     }
@@ -126,16 +126,15 @@
       font-weight: bold;
     }
 
+    /* เต็มวันอยู่เต็ม 1 แถว */
+    .period-btn[data-period="FULL"] {
+      grid-column: 1 / -1;
+    }
+
     .period-btn.active {
       background: #06c755;
       color: white;
       border-color: #06c755;
-    }
-
-    @media (max-width: 420px) {
-      .leave-period {
-        grid-template-columns: 1fr;
-      }
     }
 
     .balance-panel {
