@@ -211,12 +211,42 @@
     /* วันที่เริ่มลา + วันที่สิ้นสุด ให้อยู่บรรทัดเดียวกัน */
     .date-range {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+
+    .date-field {
+      min-width: 0;
     }
 
     .date-field label {
       margin-top: 15px;
+      white-space: nowrap;
+      font-size: 16px;
+    }
+
+    .date-field input[type="date"] {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 10px 8px;
+      font-size: 15px;
+    }
+
+    @media (max-width: 420px) {
+      .date-range {
+        gap: 12px;
+      }
+
+      .date-field label {
+        font-size: 15px;
+      }
+
+      .date-field input[type="date"] {
+        padding: 9px 6px;
+        font-size: 14px;
+      }
     }
 
     @media (max-width: 380px) {
