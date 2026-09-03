@@ -209,43 +209,58 @@
     }
 
     /* วันที่เริ่มลา + วันที่สิ้นสุด ให้อยู่บรรทัดเดียวกัน */
+    /* แยกช่องวันที่ให้มีพื้นที่ตรงกลางมากขึ้น */
     .date-range {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
       width: 100%;
+      box-sizing: border-box;
     }
 
     .date-field {
+      flex: 0 1 45%;
+      width: 45%;
       min-width: 0;
+      box-sizing: border-box;
     }
 
     .date-field label {
+      display: block;
       margin-top: 15px;
+      margin-bottom: 6px;
       white-space: nowrap;
       font-size: 16px;
     }
 
     .date-field input[type="date"] {
+      display: block;
       width: 100%;
+      max-width: 100%;
       min-width: 0;
       box-sizing: border-box;
-      padding: 10px 8px;
-      font-size: 15px;
+      padding: 9px 5px;
+      font-size: 14px;
     }
 
     @media (max-width: 420px) {
       .date-range {
-        gap: 12px;
+        gap: 28px;
+      }
+
+      .date-field {
+        flex-basis: 44%;
+        width: 44%;
       }
 
       .date-field label {
-        font-size: 15px;
+        font-size: 14px;
       }
 
       .date-field input[type="date"] {
-        padding: 9px 6px;
-        font-size: 14px;
+        padding: 8px 4px;
+        font-size: 13px;
       }
     }
 
