@@ -157,37 +157,89 @@
     .balance-panel {
       display: none;
       margin: 4px 0 18px;
-      padding: 14px;
+      padding: 10px;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       background: #f9fafb;
     }
 
     .balance-title {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       font-weight: bold;
+      font-size: 18px;
     }
 
+    /* การ์ดวันลาคงเหลือ 4 ช่องในบรรทัดเดียว */
     .balance-list {
       display: grid;
-      gap: 8px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
     }
 
     .balance-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
+      min-width: 0;
+      min-height: 62px;
+      padding: 7px 3px;
+      border-radius: 9px;
       background: white;
       border: 1px solid #edf0f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      text-align: center;
+    }
+
+    .balance-label {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 13px;
+      line-height: 1.2;
     }
 
     .balance-days {
       flex: 0 0 auto;
       font-weight: bold;
       color: #06a647;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    /* วันที่เริ่มลา + วันที่สิ้นสุด ให้อยู่บรรทัดเดียวกัน */
+    .date-range {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .date-field label {
+      margin-top: 15px;
+    }
+
+    @media (max-width: 380px) {
+      .balance-panel {
+        padding: 8px;
+      }
+
+      .balance-list {
+        gap: 4px;
+      }
+
+      .balance-row {
+        min-height: 58px;
+        padding: 6px 2px;
+      }
+
+      .balance-label {
+        font-size: 12px;
+      }
+
+      .balance-days {
+        font-size: 15px;
+      }
     }
 
     .debug {
@@ -281,11 +333,17 @@
       </select>
       <p id="selectedBalanceHint" class="hint"></p>
 
-      <label>วันที่เริ่มลา</label>
-      <input type="date" id="startDate" required>
+      <div class="date-range">
+        <div class="date-field">
+          <label for="startDate">วันที่เริ่มลา</label>
+          <input type="date" id="startDate" required>
+        </div>
 
-      <label>วันที่สิ้นสุด</label>
-      <input type="date" id="endDate" required>
+        <div class="date-field">
+          <label for="endDate">วันที่สิ้นสุด</label>
+          <input type="date" id="endDate" required>
+        </div>
+      </div>
 
       <label>ช่วงเวลาการลา</label>
       <div id="leavePeriod" class="leave-period" role="group" aria-label="ช่วงเวลาการลา">
@@ -297,8 +355,8 @@
 
       <div id="certificateBox" class="certificate-box">
         <label for="medicalCertificate">ใบรับรองแพทย์ <span class="certificate-required">*</span></label>
-        <input type="file" id="medicalCertificate" accept="application/pdf,image/jpeg,image/png,image/webp">
-        <p class="hint">สำหรับลาป่วยเท่านั้น รองรับ PDF, JPG, PNG, WEBP ขนาดไม่เกิน 8 MB</p>
+        <input type="file" id="medicalCertificate" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif">
+        <p class="hint">สำหรับลาป่วยเท่านั้น รองรับ PDF, JPG, PNG, WEBP, HEIC, HEIF ขนาดไม่เกิน 8 MB</p>
       </div>
 
       <label>เหตุผล</label>
@@ -548,12 +606,20 @@
 
     list.innerHTML = '';
 
+    const shortLabels = {
+      ANNUAL: 'พักร้อน',
+      SICK: 'ป่วย',
+      PERSONAL: 'กิจ',
+      MATERNITY: 'คลอด'
+    };
+
     leaveBalances.forEach(function(item) {
       const row = document.createElement('div');
       row.className = 'balance-row';
 
       const label = document.createElement('span');
-      label.textContent = item.label || item.type;
+      label.className = 'balance-label';
+      label.textContent = shortLabels[item.type] || item.label || item.type;
 
       const days = document.createElement('span');
       days.className = 'balance-days';
@@ -985,7 +1051,9 @@
       'application/pdf',
       'image/jpeg',
       'image/png',
-      'image/webp'
+      'image/webp',
+      'image/heic',
+      'image/heif'
     ];
 
     if (allowedTypes.indexOf(file.type) === -1) {
