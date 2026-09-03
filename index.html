@@ -137,6 +137,23 @@
       border-color: #06c755;
     }
 
+    .certificate-box {
+      display: none;
+      margin-top: 15px;
+      padding: 14px;
+      border: 1px solid #f0d7d7;
+      border-radius: 12px;
+      background: #fff8f8;
+    }
+
+    .certificate-box label {
+      margin-top: 0;
+    }
+
+    .certificate-required {
+      color: #c62828;
+    }
+
     .balance-panel {
       display: none;
       margin: 4px 0 18px;
@@ -277,6 +294,12 @@
         <button type="button" class="period-btn" data-period="AFTERNOON">ครึ่งวันบ่าย</button>
       </div>
       <p id="leavePeriodHint" class="hint">เลือกเต็มวัน หรือเลือกครึ่งวันเช้า/บ่ายได้</p>
+
+      <div id="certificateBox" class="certificate-box">
+        <label for="medicalCertificate">ใบรับรองแพทย์ <span class="certificate-required">*</span></label>
+        <input type="file" id="medicalCertificate" accept="application/pdf,image/jpeg,image/png,image/webp">
+        <p class="hint">สำหรับลาป่วยเท่านั้น รองรับ PDF, JPG, PNG, WEBP ขนาดไม่เกิน 8 MB</p>
+      </div>
 
       <label>เหตุผล</label>
       <textarea id="reason" placeholder="กรุณาระบุเหตุผลการลา"></textarea>
@@ -670,6 +693,11 @@
 
   document.getElementById('leaveType').addEventListener('change', function() {
     updateSelectedBalanceHint();
+    updateMedicalCertificateVisibility();
+  });
+
+  document.getElementById('medicalCertificate').addEventListener('change', function() {
+    validateMedicalCertificateFile();
   });
 
   document.querySelectorAll('#leavePeriod .period-btn').forEach(function(btn) {
@@ -752,6 +780,8 @@
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
     const reason = document.getElementById('reason').value.trim();
+    const medicalCertificateInput = document.getElementById('medicalCertificate');
+    const medicalCertificateFile = medicalCertificateInput.files[0] || null;
 
     // FULL = เต็มวัน, MORNING/AFTERNOON = ครึ่งวัน (0.5 วัน)
     const requestedDays = leavePeriod === 'FULL'
@@ -762,6 +792,17 @@
       showMessageIn('message', 'กรุณาเลือกประเภทการลา', false);
       return;
     }
+
+    if (leaveType === 'SICK') {
+      if (!medicalCertificateFile) {
+        showMessageIn('message', 'กรุณาแนบใบรับรองแพทย์สำหรับการลาป่วย', false);
+        return;
+      }
+      if (!validateMedicalCertificateFile()) {
+        return;
+      }
+    }
+
     if (!startDate) {
       showMessageIn('message', 'กรุณาเลือกวันที่เริ่มลา', false);
       return;
@@ -813,6 +854,16 @@
     showMessageIn('message', 'กำลังบันทึกคำขอลา...', true);
 
     try {
+      let medicalCertificateBase64 = '';
+      let medicalCertificateName = '';
+      let medicalCertificateMimeType = '';
+
+      if (leaveType === 'SICK' && medicalCertificateFile) {
+        medicalCertificateBase64 = await readFileAsBase64(medicalCertificateFile);
+        medicalCertificateName = medicalCertificateFile.name;
+        medicalCertificateMimeType = medicalCertificateFile.type;
+      }
+
       const result = await apiCall({
         action: 'submitLeave',
         idToken: idToken,
@@ -820,7 +871,10 @@
         startDate: startDate,
         endDate: endDate,
         leavePeriod: leavePeriod,
-        reason: reason
+        reason: reason,
+        medicalCertificateBase64: medicalCertificateBase64,
+        medicalCertificateName: medicalCertificateName,
+        medicalCertificateMimeType: medicalCertificateMimeType
       });
 
       btn.disabled = false;
@@ -844,6 +898,7 @@
       document.getElementById('leaveForm').reset();
       setLeavePeriod('FULL');
       updateSelectedBalanceHint();
+      updateMedicalCertificateVisibility();
     } catch (error) {
       btn.disabled = false;
       btn.textContent = 'ส่งคำขอลา';
@@ -901,6 +956,69 @@
     if (startDate) {
       endDate.value = startDate;
     }
+  }
+
+  function updateMedicalCertificateVisibility() {
+    const leaveType = document.getElementById('leaveType').value;
+    const box = document.getElementById('certificateBox');
+    const input = document.getElementById('medicalCertificate');
+
+    if (leaveType === 'SICK') {
+      box.style.display = 'block';
+      input.required = true;
+    } else {
+      box.style.display = 'none';
+      input.required = false;
+      input.value = '';
+    }
+  }
+
+  function validateMedicalCertificateFile() {
+    const input = document.getElementById('medicalCertificate');
+    const file = input.files[0];
+
+    if (!file) {
+      return true;
+    }
+
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    if (allowedTypes.indexOf(file.type) === -1) {
+      input.value = '';
+      showMessageIn('message', 'ไฟล์ไม่ถูกต้อง รองรับเฉพาะ PDF, JPG, PNG หรือ WEBP', false);
+      return false;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      input.value = '';
+      showMessageIn('message', 'ไฟล์ใบรับรองแพทย์ต้องมีขนาดไม่เกิน 8 MB', false);
+      return false;
+    }
+
+    return true;
+  }
+
+  function readFileAsBase64(file) {
+    return new Promise(function(resolve, reject) {
+      const reader = new FileReader();
+
+      reader.onload = function() {
+        const result = String(reader.result || '');
+        const commaIndex = result.indexOf(',');
+        resolve(commaIndex >= 0 ? result.substring(commaIndex + 1) : result);
+      };
+
+      reader.onerror = function() {
+        reject(new Error('ไม่สามารถอ่านไฟล์ใบรับรองแพทย์ได้'));
+      };
+
+      reader.readAsDataURL(file);
+    });
   }
 
   function calculateLeaveDays(startDate, endDate) {
