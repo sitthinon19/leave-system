@@ -107,6 +107,37 @@
       margin-top: 6px;
     }
 
+    .leave-period {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .period-btn {
+      width: 100%;
+      margin-top: 0;
+      padding: 12px 8px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: white;
+      color: #333;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .period-btn.active {
+      background: #06c755;
+      color: white;
+      border-color: #06c755;
+    }
+
+    @media (max-width: 420px) {
+      .leave-period {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .balance-panel {
       display: none;
       margin: 4px 0 18px;
@@ -240,6 +271,14 @@
       <label>วันที่สิ้นสุด</label>
       <input type="date" id="endDate" required>
 
+      <label>ช่วงเวลาการลา</label>
+      <div id="leavePeriod" class="leave-period" role="group" aria-label="ช่วงเวลาการลา">
+        <button type="button" class="period-btn active" data-period="FULL">เต็มวัน</button>
+        <button type="button" class="period-btn" data-period="MORNING">ครึ่งวันเช้า</button>
+        <button type="button" class="period-btn" data-period="AFTERNOON">ครึ่งวันบ่าย</button>
+      </div>
+      <p id="leavePeriodHint" class="hint">เลือกเต็มวัน หรือเลือกครึ่งวันเช้า/บ่ายได้</p>
+
       <label>เหตุผล</label>
       <textarea id="reason" placeholder="กรุณาระบุเหตุผลการลา"></textarea>
 
@@ -268,13 +307,14 @@
 
 <script>
   const LIFF_ID = '2011333828-5qZ3k9TW';
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxLjeY6oJ-BnaoIOSSgJa-h88JCne8XQH-5-HJiU7p9GH51WcBPjCE0oyX7zn1vaByiCA/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwC9Nj6sa_VWJ_9XStboP8IC-sDYYhekrRLiLpRU78IoH1rf4r7Gw8QVZXZGLmKNrPN4A/exec';
 
   let idToken = null;
   let liffReady = false;
   let supervisorList = [];
   let leaveBalances = [];
   let rejectToken = '';
+  let leavePeriod = 'FULL';
 
   /***********************************************
    * INIT LIFF
@@ -633,6 +673,16 @@
     updateSelectedBalanceHint();
   });
 
+  document.querySelectorAll('#leavePeriod .period-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      setLeavePeriod(btn.dataset.period);
+    });
+  });
+
+  document.getElementById('startDate').addEventListener('change', function() {
+    syncHalfDayDates();
+  });
+
   document.getElementById('rejectForm').addEventListener('submit', function(e) {
     e.preventDefault();
     submitReject();
@@ -704,6 +754,11 @@
     const endDate = document.getElementById('endDate').value;
     const reason = document.getElementById('reason').value.trim();
 
+    // FULL = เต็มวัน, MORNING/AFTERNOON = ครึ่งวัน (0.5 วัน)
+    const requestedDays = leavePeriod === 'FULL'
+      ? calculateLeaveDays(startDate, endDate)
+      : (startDate === endDate ? 0.5 : 0);
+
     if (!leaveType) {
       showMessageIn('message', 'กรุณาเลือกประเภทการลา', false);
       return;
@@ -721,8 +776,18 @@
       return;
     }
 
+    if (requestedDays <= 0) {
+      showMessageIn(
+        'message',
+        leavePeriod === 'FULL'
+          ? 'วันที่ลาไม่ถูกต้อง'
+          : 'การลาครึ่งวันต้องเลือกวันที่เริ่มลาและวันที่สิ้นสุดเป็นวันเดียวกัน',
+        false
+      );
+      return;
+    }
+
     const balance = findLeaveBalance(leaveType);
-    const requestedDays = calculateLeaveDays(startDate, endDate);
 
     if (
       balance &&
@@ -755,6 +820,7 @@
         leaveType: leaveType,
         startDate: startDate,
         endDate: endDate,
+        leavePeriod: leavePeriod,
         reason: reason
       });
 
@@ -777,6 +843,7 @@
       );
 
       document.getElementById('leaveForm').reset();
+      setLeavePeriod('FULL');
       updateSelectedBalanceHint();
     } catch (error) {
       btn.disabled = false;
@@ -798,6 +865,43 @@
     box.style.display = 'block';
     box.className = 'message ' + (success ? 'success' : 'error');
     box.textContent = text;
+  }
+
+  function setLeavePeriod(period) {
+    leavePeriod = period === 'MORNING' || period === 'AFTERNOON'
+      ? period
+      : 'FULL';
+
+    document.querySelectorAll('#leavePeriod .period-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.period === leavePeriod);
+    });
+
+    const hint = document.getElementById('leavePeriodHint');
+    const endDate = document.getElementById('endDate');
+
+    if (leavePeriod === 'FULL') {
+      hint.textContent = 'เลือกเต็มวัน หรือเลือกครึ่งวันเช้า/บ่ายได้';
+      endDate.disabled = false;
+    } else {
+      hint.textContent = leavePeriod === 'MORNING'
+        ? 'ครึ่งวันเช้า = หักวันลา 0.5 วัน และต้องลาเพียง 1 วัน'
+        : 'ครึ่งวันบ่าย = หักวันลา 0.5 วัน และต้องลาเพียง 1 วัน';
+      endDate.disabled = true;
+      syncHalfDayDates();
+    }
+  }
+
+  function syncHalfDayDates() {
+    if (leavePeriod === 'FULL') {
+      return;
+    }
+
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate');
+
+    if (startDate) {
+      endDate.value = startDate;
+    }
   }
 
   function calculateLeaveDays(startDate, endDate) {
