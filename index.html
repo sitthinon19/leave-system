@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HR mini</title>
+  <title>ระบบลางานออนไลน์</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -287,34 +287,6 @@
       }
     }
 
-    .module-nav {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin: 12px 0 18px;
-      padding: 5px;
-      background: #f3f4f6;
-      border-radius: 12px;
-    }
-    .module-btn { margin:0; padding:10px 5px; background:white; color:#333; border:1px solid #e5e7eb; font-size:13px; border-radius:9px; }
-    .module-btn.active { background:#06c755; color:white; border-color:#06c755; }
-    .module-section { width:100%; }
-    .module-heading { margin: 4px 0 8px; font-size:21px; }
-    .secondary-btn { background:white !important; color:#333 !important; border:1px solid #ddd !important; }
-    .expense-item { border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin:10px 0; background:#fafafa; }
-    .expense-item-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-    .remove-item { width:auto; margin:0; padding:6px 10px; background:#fdecec; color:#c62828; font-size:13px; }
-    .expense-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .expense-total { margin-top:14px; padding:13px; background:#f0faf3; border-radius:10px; text-align:right; font-size:18px; }
-    .attendance-location-card { padding:14px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb; margin:12px 0; }
-    .attendance-distance { margin-top:8px; font-weight:bold; color:#137333; }
-    .attendance-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .attendance-actions button { margin-top:10px; }
-    .history-box { margin-top:20px; padding-top:12px; border-top:1px solid #eee; }
-    .history-row { padding:10px 0; border-bottom:1px solid #eee; font-size:13px; }
-    .history-status { font-weight:bold; }
-    @media (max-width:420px) { .module-btn{font-size:12px;} .expense-grid{grid-template-columns:1fr;} .attendance-actions{grid-template-columns:1fr;} }
-
     .debug {
       display: none;
       margin-top: 12px;
@@ -332,17 +304,9 @@
 <div class="container">
   <div class="card">
 
-    <h1>📋 HR mini</h1>
+    <h1>📋 ระบบลางานออนไลน์</h1>
 
     <div id="userInfo" class="user">กำลังตรวจสอบ LINE...</div>
-
-    <div id="moduleNav" class="module-nav" style="display:none;">
-      <button type="button" class="module-btn active" data-module="leave">🏖️ ลางาน</button>
-      <button type="button" class="module-btn" data-module="expense">💰 เบิกค่าใช้จ่าย</button>
-      <button type="button" class="module-btn" data-module="attendance">📍 เข้า-ออกงาน</button>
-    </div>
-
-    <div id="moduleLeave" class="module-section">
 
     <div id="loadingSection" class="loading" style="display:none;">
       กำลังโหลดข้อมูล...
@@ -448,39 +412,6 @@
       <div id="message" class="message"></div>
     </form>
 
-    </div>
-
-    <section id="moduleExpense" class="module-section" style="display:none;">
-      <h2 class="module-heading">💰 เบิกค่าใช้จ่าย</h2>
-      <p class="hint">เพิ่มรายการค่าใช้จ่าย แนบใบเสร็จ และส่งขออนุมัติ</p>
-      <div id="expenseItems"></div>
-      <button type="button" id="addExpenseItemBtn" class="secondary-btn">＋ เพิ่มรายการ</button>
-      <label>วัตถุประสงค์ *</label>
-      <textarea id="expensePurpose" placeholder="เช่น เดินทางไปพบลูกค้า / ซื้ออุปกรณ์สำนักงาน"></textarea>
-      <div class="expense-total">รวมทั้งสิ้น <strong id="expenseTotal">0.00 บาท</strong></div>
-      <button type="button" id="submitExpenseBtn">ส่งใบเบิกค่าใช้จ่าย</button>
-      <div id="expenseMessage" class="message"></div>
-      <div class="history-box"><h3>รายการของฉัน</h3><div id="expenseHistory">กำลังโหลด...</div></div>
-    </section>
-
-    <section id="moduleAttendance" class="module-section" style="display:none;">
-      <h2 class="module-heading">📍 เข้า-ออกงาน</h2>
-      <div class="attendance-location-card">
-        <div>📌 <strong id="workLocationName">กำลังโหลดจุดทำงาน...</strong></div>
-        <div class="hint">ระบบจะตรวจ GPS และอนุญาตเมื่ออยู่ในรัศมีที่ HR กำหนด</div>
-        <div class="attendance-distance" id="attendanceDistance"></div>
-      </div>
-      <label>รูปถ่ายยืนยันตัวตน</label>
-      <input type="file" id="attendancePhoto" accept="image/jpeg,image/png,image/webp" capture="user">
-      <p class="hint">แนะนำให้เปิด Location และถ่ายรูปก่อนทำรายการ</p>
-      <div class="attendance-actions">
-        <button type="button" id="checkInBtn">📍 Check In</button>
-        <button type="button" id="checkOutBtn" class="secondary-btn">🏁 Check Out</button>
-      </div>
-      <div id="attendanceMessage" class="message"></div>
-      <div class="history-box"><h3>ประวัติการเข้า-ออกงาน</h3><div id="attendanceHistory">กำลังโหลด...</div></div>
-    </section>
-
     <!-- ========================================= -->
     <!-- หน้าไม่อนุมัติ: เปิดจากลิงก์ใน LINE ผ่าน Netlify -->
     <!-- ========================================= -->
@@ -501,7 +432,7 @@
 
 <script>
   const LIFF_ID = '2011333828-5qZ3k9TW';
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwFTtxniSxWLZgE0PzrYw3ON7jeAfy3q8vczPyOgjmOn3udokk3L8jaJdNTr8e9W8ZBHQ/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGRUnNjIAyRosr_1gSh3kVia0Tk3gluNWXkOpVwqjKhJkDFWLrobc-MSVibATWnC--3A/exec';
 
   let idToken = null;
   let liffReady = false;
@@ -509,8 +440,6 @@
   let leaveBalances = [];
   let rejectToken = '';
   let leavePeriod = 'FULL';
-  let activeModule = 'leave';
-  let expenseItemCounter = 0;
 
   /***********************************************
    * INIT LIFF
@@ -654,9 +583,7 @@
             ? result.employee.leaveBalances
             : [];
         renderLeaveBalances();
-        document.getElementById('moduleNav').style.display = 'grid';
         document.getElementById('leaveForm').style.display = 'block';
-        switchModule('leave');
 
       } else if (result.status === 'pending') {
         document.getElementById('pendingSection').style.display = 'block';
@@ -1214,94 +1141,6 @@
 
     return Math.floor(diff / 86400000) + 1;
   }
-
-
-  /***********************************************
-   * HR MINI: MODULE NAVIGATION / EXPENSE / ATTENDANCE
-   ***********************************************/
-  function switchModule(module) {
-    activeModule = module;
-    document.querySelectorAll('.module-btn').forEach(function(btn){ btn.classList.toggle('active', btn.dataset.module===module); });
-    document.getElementById('moduleLeave').style.display = module==='leave' ? 'block' : 'none';
-    document.getElementById('moduleExpense').style.display = module==='expense' ? 'block' : 'none';
-    document.getElementById('moduleAttendance').style.display = module==='attendance' ? 'block' : 'none';
-    if(module==='expense'){ if(!document.querySelector('.expense-item')) addExpenseItem(); loadExpenseHistory(); }
-    if(module==='attendance'){ loadAttendanceInfo(); loadAttendanceHistory(); }
-  }
-
-  document.querySelectorAll('.module-btn').forEach(function(btn){ btn.addEventListener('click',function(){ switchModule(btn.dataset.module); }); });
-
-  function addExpenseItem() {
-    expenseItemCounter++;
-    const n=expenseItemCounter;
-    const wrap=document.createElement('div'); wrap.className='expense-item'; wrap.dataset.item=n;
-    wrap.innerHTML='<div class="expense-item-header"><strong>รายการที่ '+n+'</strong><button type="button" class="remove-item">ลบ</button></div>'+
-      '<div class="expense-grid">'+
-      '<div><label>วันที่ *</label><input type="date" class="expense-date" required></div>'+
-      '<div><label>ประเภท *</label><select class="expense-type" required><option value="">-- เลือกประเภท --</option><option value="TRAVEL">ค่าเดินทาง</option><option value="FUEL">ค่าน้ำมัน</option><option value="MEAL">ค่าอาหาร</option><option value="ACCOMMODATION">ค่าที่พัก</option><option value="OFFICE">อุปกรณ์สำนักงาน</option><option value="TELEPHONE">ค่าโทรศัพท์/อินเทอร์เน็ต</option><option value="OTHER">อื่น ๆ</option><option value="ADVANCE">เงินทดรองจ่าย</option></select></div></div>'+
-      '<label>จำนวนเงิน (บาท) *</label><input type="number" class="expense-amount" min="0.01" step="0.01" placeholder="0.00" required>'+
-      '<label>รายละเอียด</label><input type="text" class="expense-purpose" placeholder="รายละเอียดของรายการ">'+
-      '<label>ใบเสร็จ</label><input type="file" class="expense-receipt" accept="application/pdf,image/jpeg,image/png,image/webp">'+
-      '<p class="hint">รองรับ PDF/JPG/PNG/WEBP ไม่เกิน 8 MB</p>';
-    wrap.querySelector('.remove-item').addEventListener('click',function(){ wrap.remove(); recalcExpenseTotal(); });
-    wrap.querySelector('.expense-amount').addEventListener('input',recalcExpenseTotal);
-    document.getElementById('expenseItems').appendChild(wrap); recalcExpenseTotal();
-  }
-  document.getElementById('addExpenseItemBtn').addEventListener('click',addExpenseItem);
-  function recalcExpenseTotal(){ let total=0; document.querySelectorAll('.expense-amount').forEach(function(x){ total+=Number(x.value)||0; }); document.getElementById('expenseTotal').textContent=total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' บาท'; }
-
-  function readAnyFileBase64(file){ return new Promise(function(resolve,reject){ if(!file){resolve('');return;} const r=new FileReader(); r.onload=function(){const s=String(r.result||''); const i=s.indexOf(','); resolve(i>=0?s.substring(i+1):s);}; r.onerror=function(){reject(new Error('อ่านไฟล์ไม่สำเร็จ'));}; r.readAsDataURL(file); }); }
-
-  document.getElementById('submitExpenseBtn').addEventListener('click',async function(){
-    const msg=document.getElementById('expenseMessage'); const btn=this;
-    const purpose=document.getElementById('expensePurpose').value.trim(); const nodes=[...document.querySelectorAll('.expense-item')];
-    if(!nodes.length){showMessageIn('expenseMessage','กรุณาเพิ่มรายการค่าใช้จ่าย',false);return;} if(!purpose){showMessageIn('expenseMessage','กรุณาระบุวัตถุประสงค์',false);return;}
-    btn.disabled=true; btn.textContent='กำลังส่งข้อมูล...'; showMessageIn('expenseMessage','กำลังบันทึกใบเบิกและอัปโหลดใบเสร็จ...',true);
-    try{
-      const items=[];
-      for(let i=0;i<nodes.length;i++){
-        const el=nodes[i], date=el.querySelector('.expense-date').value, type=el.querySelector('.expense-type').value, amount=Number(el.querySelector('.expense-amount').value), detail=el.querySelector('.expense-purpose').value.trim(), file=el.querySelector('.expense-receipt').files[0]||null;
-        if(!date||!type||!(amount>0)) throw new Error('กรุณากรอกข้อมูลรายการที่ '+(i+1)+' ให้ครบ');
-        if(file && file.size>8*1024*1024) throw new Error('ใบเสร็จรายการที่ '+(i+1)+' มีขนาดเกิน 8 MB');
-        items.push({expenseDate:date,expenseType:type,amount:amount,purpose:detail,receiptBase64:file?await readAnyFileBase64(file):'',receiptName:file?file.name:'',receiptMimeType:file?file.type:''});
-      }
-      const result=await apiCall({action:'submitExpense',idToken:idToken,items:items,purpose:purpose});
-      if(!result||!result.success) throw new Error(result&&result.message?result.message:'ไม่สามารถส่งใบเบิกได้');
-      showMessageIn('expenseMessage','ส่งใบเบิกเรียบร้อยแล้ว\nเลขที่: '+result.expenseId,true);
-      document.getElementById('expenseItems').innerHTML=''; expenseItemCounter=0; addExpenseItem(); document.getElementById('expensePurpose').value=''; recalcExpenseTotal(); loadExpenseHistory();
-    }catch(err){ showMessageIn('expenseMessage',err.message||'เกิดข้อผิดพลาด',false); } finally {btn.disabled=false;btn.textContent='ส่งใบเบิกค่าใช้จ่าย';}
-  });
-
-  async function loadExpenseHistory(){ if(!idToken)return; const box=document.getElementById('expenseHistory'); box.textContent='กำลังโหลด...'; try{const r=await apiCall({action:'getExpenseHistory',idToken:idToken}); if(!r.success)throw new Error(r.message); if(!r.items.length){box.textContent='ยังไม่มีรายการ';return;} box.innerHTML=r.items.map(x=>'<div class="history-row"><strong>'+escapeClient(x.expenseId)+'</strong> · '+escapeClient(x.date)+'<br>ยอด '+Number(x.total||0).toLocaleString()+' บาท · <span class="history-status">'+escapeClient(x.status)+'</span><br>'+escapeClient(x.purpose)+'</div>').join('');}catch(e){box.textContent=e.message||'โหลดข้อมูลไม่สำเร็จ';} }
-
-  function escapeClient(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];}); }
-
-  async function getCurrentPosition(){ return new Promise(function(resolve,reject){ if(!navigator.geolocation){reject(new Error('อุปกรณ์นี้ไม่รองรับ GPS'));return;} navigator.geolocation.getCurrentPosition(resolve,function(err){ let m='ไม่สามารถอ่านตำแหน่งได้'; if(err.code===1)m='กรุณาอนุญาต Location ให้ LINE/เบราว์เซอร์ก่อน'; if(err.code===2)m='ไม่สามารถระบุตำแหน่งได้'; if(err.code===3)m='อ่านตำแหน่งใช้เวลานานเกินไป'; reject(new Error(m)); },{enableHighAccuracy:true,timeout:15000,maximumAge:0}); }); }
-
-  async function loadAttendanceInfo(){
-    if(!idToken)return;
-    try {
-      const r=await apiCall({action:'getAttendanceInfo',idToken:idToken});
-      if(!r.success) throw new Error(r.message);
-      document.getElementById('workLocationName').textContent=(r.location||'จุดทำงานที่กำหนด')+' · รัศมี '+r.radius+' เมตร';
-      document.getElementById('attendanceDistance').textContent='เวลางาน '+r.workStart+' - '+r.workEnd;
-    } catch(e) { document.getElementById('workLocationName').textContent=e.message||'ยังไม่ได้กำหนดจุดทำงาน'; }
-  }
-  async function doAttendance(mode){
-    if(!idToken){showMessageIn('attendanceMessage','ยังไม่พร้อมเชื่อมต่อ LINE',false);return;}
-    const btn=mode==='CHECK_IN'?document.getElementById('checkInBtn'):document.getElementById('checkOutBtn'); btn.disabled=true; showMessageIn('attendanceMessage','กำลังตรวจ GPS...',true);
-    try{
-      const pos=await getCurrentPosition(); const photoInput=document.getElementById('attendancePhoto'); const file=photoInput.files[0]||null;
-      if(file&&file.size>8*1024*1024)throw new Error('รูปถ่ายต้องมีขนาดไม่เกิน 8 MB');
-      const base64=file?await readAnyFileBase64(file):'';
-      const r=await apiCall({action:'attendanceCheck',idToken:idToken,mode:mode,latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy,photoBase64:base64,photoName:file?file.name:'',photoMimeType:file?file.type:'',device:(liff&&liff.getOS?liff.getOS():'')});
-      if(!r.success)throw new Error(r.message||'ไม่สามารถทำรายการได้');
-      showMessageIn('attendanceMessage',r.message+'\nระยะห่างจากจุดทำงาน: '+r.distance+' เมตร'+(r.lateMinutes!=null?'\nมาสาย: '+r.lateMinutes+' นาที':'')+(r.otMinutes!=null?'\nOT: '+r.otMinutes+' นาที':''),true); document.getElementById('attendanceDistance').textContent='ตรวจสอบผ่าน: '+r.distance+' เมตร'; photoInput.value=''; loadAttendanceHistory();
-    }catch(e){showMessageIn('attendanceMessage',e.message||'เกิดข้อผิดพลาด',false);} finally{btn.disabled=false;}
-  }
-  document.getElementById('checkInBtn').addEventListener('click',function(){doAttendance('CHECK_IN');});
-  document.getElementById('checkOutBtn').addEventListener('click',function(){doAttendance('CHECK_OUT');});
-  async function loadAttendanceHistory(){ if(!idToken)return; const box=document.getElementById('attendanceHistory'); try{const r=await apiCall({action:'getAttendanceHistory',idToken:idToken}); if(!r.success)throw new Error(r.message); if(!r.items.length){box.textContent='ยังไม่มีประวัติ';return;} box.innerHTML=r.items.map(x=>'<div class="history-row"><strong>'+escapeClient(x.date)+'</strong><br>เข้า: '+escapeClient(x.checkIn||'-')+' · ออก: '+escapeClient(x.checkOut||'-')+'<br>สถานะ: '+escapeClient(x.status||'-')+' · สาย '+Number(x.late||0)+' นาที · OT '+Number(x.ot||0)+' นาที</div>').join('');}catch(e){box.textContent=e.message||'โหลดข้อมูลไม่สำเร็จ';} }
 
   /***********************************************
    * START
