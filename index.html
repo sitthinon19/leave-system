@@ -298,7 +298,22 @@
       word-break: break-word;
       white-space: pre-line;
     }
-  </style>
+  
+    .nav-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 18px}
+    .nav-btn{margin:0;padding:11px 8px;background:#f1f3f5;color:#333;border:1px solid #ddd;font-size:15px}
+    .nav-btn.active{background:#06c755;color:#fff;border-color:#06c755}
+    .page{display:none}.page.active{display:block}
+    .history-filter{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;margin-bottom:15px}
+    .history-filter button{margin-top:0}
+    .history-summary{padding:12px;border-radius:12px;background:#f9fafb;border:1px solid #e5e7eb;margin-bottom:12px;font-size:14px}
+    .history-card{border:1px solid #e5e7eb;border-radius:14px;padding:13px;margin-bottom:10px;background:#fff}
+    .history-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+    .history-type{font-weight:bold;font-size:16px}.history-id{font-size:12px;color:#888}
+    .status-badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:bold;white-space:nowrap}
+    .status-pending{background:#fff4cc;color:#8a6200}.status-approved{background:#e8f7ed;color:#137333}.status-rejected{background:#fdecec;color:#c62828}.status-other{background:#eef2ff;color:#3f51b5}
+    .history-row{font-size:14px;margin:5px 0;color:#444}.history-label{color:#888}.history-empty{text-align:center;padding:28px 10px;color:#888}
+    @media(max-width:430px){.history-filter{grid-template-columns:1fr}.history-top{align-items:flex-start}.status-badge{font-size:11px}}
+</style>
 </head>
 <body>
 <div class="container">
@@ -365,6 +380,12 @@
     <!-- ========================================= -->
     <!-- สถานะ: Active -> ฟอร์มยื่นลาตามปกติ -->
     <!-- ========================================= -->
+    <div id="mainNav" class="nav-tabs" style="display:none;">
+      <button type="button" id="navLeave" class="nav-btn active" onclick="showMainPage('leavePage')">📝 ยื่นลา</button>
+      <button type="button" id="navHistory" class="nav-btn" onclick="showMainPage('historyPage')">📋 ประวัติการลา</button>
+    </div>
+
+    <div id="leavePage" class="page">
     <form id="leaveForm" style="display:none;">
 
       <div id="balancePanel" class="balance-panel">
@@ -415,6 +436,19 @@
 
       <div id="message" class="message"></div>
     </form>
+    </div>
+
+    <div id="historyPage" class="page">
+      <div class="history-filter">
+        <div>
+          <label for="historyMonth">เลือกเดือน</label>
+          <input type="month" id="historyMonth">
+        </div>
+        <button type="button" id="historyLoadBtn" onclick="loadLeaveHistory()">🔄 โหลดประวัติ</button>
+      </div>
+      <div id="historySummary" class="history-summary">เลือกเดือนแล้วกดโหลดประวัติ หรือปล่อยว่างเพื่อดูทั้งหมด</div>
+      <div id="historyList"></div>
+    </div>
 
     <!-- ========================================= -->
     <!-- หน้าไม่อนุมัติ: เปิดจากลิงก์ใน LINE ผ่าน Netlify -->
@@ -436,7 +470,7 @@
 
 <script>
   const LIFF_ID = '2011333828-5qZ3k9TW';
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyDd80qKVJMpgSyiMfYcaRLGmei_nHta4ErC_ivrQ3YFc8XysyRiVi5y0B4n_i0OBFhyw/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwwHiAzZR0dHkDfIqDoodHL3Tg9jUI6tkDOj0aIJNcuX17aiZ03qljkiba5cUKP_9-h/exec';
 
   let idToken = null;
   let liffReady = false;
@@ -445,6 +479,7 @@
   let leaveBalances = [];
   let rejectToken = '';
   let leavePeriod = 'FULL';
+  let currentMainPage = 'leavePage';
 
   /***********************************************
    * INIT LIFF
@@ -531,6 +566,8 @@
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('pendingSection').style.display = 'none';
     document.getElementById('leaveForm').style.display = 'none';
+    document.getElementById('mainNav').style.display = 'none';
+    document.getElementById('historyPage').classList.remove('active');
     document.getElementById('rejectForm').style.display = 'block';
 
     if (!rejectToken) {
@@ -588,7 +625,12 @@
             ? result.employee.leaveBalances
             : [];
         renderLeaveBalances();
+        document.getElementById('mainNav').style.display = 'grid';
         document.getElementById('leaveForm').style.display = 'block';
+        showMainPage('leavePage');
+        // เตรียมเดือนปัจจุบันสำหรับหน้า History แต่ยังไม่บังคับ filter
+        const hm = document.getElementById('historyMonth');
+        if (hm && !hm.value) hm.value = new Date().toISOString().slice(0,7);
 
       } else if (result.status === 'pending') {
         document.getElementById('pendingSection').style.display = 'block';
@@ -784,6 +826,121 @@
     }
 
     return Number(value) + ' วัน';
+  }
+
+  /***********************************************
+   * NAVIGATION + LEAVE HISTORY
+   ***********************************************/
+  function showMainPage(pageId) {
+    if (pageId !== 'leavePage' && pageId !== 'historyPage') return;
+    currentMainPage = pageId;
+
+    document.querySelectorAll('.page').forEach(function(page) {
+      page.classList.toggle('active', page.id === pageId);
+    });
+
+    const leaveBtn = document.getElementById('navLeave');
+    const historyBtn = document.getElementById('navHistory');
+    if (leaveBtn) leaveBtn.classList.toggle('active', pageId === 'leavePage');
+    if (historyBtn) historyBtn.classList.toggle('active', pageId === 'historyPage');
+
+    if (pageId === 'historyPage') {
+      loadLeaveHistory();
+    }
+  }
+
+  async function loadLeaveHistory() {
+    const list = document.getElementById('historyList');
+    const summary = document.getElementById('historySummary');
+    const btn = document.getElementById('historyLoadBtn');
+    if (!list || !summary) return;
+
+    if (!liffReady || !idToken) {
+      list.innerHTML = '<div class="history-empty">ยังไม่สามารถยืนยัน LINE ได้</div>';
+      return;
+    }
+
+    const month = (document.getElementById('historyMonth') || {}).value || '';
+    list.innerHTML = '<div class="history-empty">กำลังโหลดประวัติการลา...</div>';
+    if (btn) { btn.disabled = true; btn.textContent = 'กำลังโหลด...'; }
+
+    try {
+      const result = await apiCall({
+        action: 'getLeaveHistory',
+        idToken: idToken,
+        month: month
+      });
+
+      if (!result || !result.success) {
+        throw new Error(result && result.message ? result.message : 'ไม่สามารถโหลดประวัติการลาได้');
+      }
+
+      const records = Array.isArray(result.records) ? result.records : [];
+      summary.textContent = month
+        ? 'ประวัติการลาเดือน ' + formatMonthThai_(month) + ' • ' + records.length + ' รายการ'
+        : 'ประวัติการลาทั้งหมด • ' + records.length + ' รายการ';
+
+      if (!records.length) {
+        list.innerHTML = '<div class="history-empty">ไม่พบประวัติการลาในช่วงที่เลือก</div>';
+        return;
+      }
+
+      list.innerHTML = records.map(function(item) {
+        return renderLeaveHistoryCard_(item);
+      }).join('');
+    } catch (error) {
+      list.innerHTML = '<div class="history-empty">' + escapeHtmlClient_(error.message || 'เกิดข้อผิดพลาด') + '</div>';
+      summary.textContent = 'ไม่สามารถโหลดข้อมูลได้';
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '🔄 โหลดประวัติ'; }
+    }
+  }
+
+  function renderLeaveHistoryCard_(item) {
+    const statusClass = getHistoryStatusClass_(item.status);
+    const days = Number(item.leaveDays) || 0;
+    let html = '<div class="history-card">';
+    html += '<div class="history-top">';
+    html += '<div><div class="history-type">' + escapeHtmlClient_(item.leaveTypeLabel || item.leaveType || '-') + '</div>';
+    html += '<div class="history-id">' + escapeHtmlClient_(item.requestId || '-') + '</div></div>';
+    html += '<span class="status-badge ' + statusClass + '">' + escapeHtmlClient_(item.statusLabel || item.status || '-') + '</span>';
+    html += '</div>';
+    html += '<div class="history-row"><span class="history-label">📅 วันที่:</span> ' + escapeHtmlClient_(item.startDate || '-') + ' ถึง ' + escapeHtmlClient_(item.endDate || '-') + '</div>';
+    html += '<div class="history-row"><span class="history-label">⏱ จำนวน:</span> ' + days + ' วัน</div>';
+    if (item.reason) html += '<div class="history-row"><span class="history-label">💬 เหตุผล:</span> ' + escapeHtmlClient_(item.reason) + '</div>';
+    if (item.rejectionReason) html += '<div class="history-row"><span class="history-label">⚠️ เหตุผลที่ไม่อนุมัติ:</span> ' + escapeHtmlClient_(item.rejectionReason) + '</div>';
+    if (item.createdAt) html += '<div class="history-row"><span class="history-label">ส่งคำขอ:</span> ' + escapeHtmlClient_(item.createdAt) + '</div>';
+    if (item.medicalCertificateURL) html += '<div class="history-row"><a href="' + safeUrlClient_(item.medicalCertificateURL) + '" target="_blank" rel="noopener">📎 ดูใบรับรองแพทย์</a></div>';
+    html += '</div>';
+    return html;
+  }
+
+  function getHistoryStatusClass_(status) {
+    if (status === 'Approved') return 'status-approved';
+    if (status === 'Rejected') return 'status-rejected';
+    if (String(status || '').indexOf('Pending') === 0) return 'status-pending';
+    return 'status-other';
+  }
+
+  function formatMonthThai_(month) {
+    const parts = String(month || '').split('-');
+    if (parts.length !== 2) return month;
+    const names = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    const m = Number(parts[1]);
+    const y = Number(parts[0]) + 543;
+    return (names[m - 1] || parts[1]) + ' ' + y;
+  }
+
+  function escapeHtmlClient_(text) {
+    return String(text == null ? '' : text)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  function safeUrlClient_(url) {
+    const value = String(url || '').trim();
+    if (!/^https:\/\//i.test(value)) return '#';
+    return escapeHtmlClient_(value);
   }
 
   /***********************************************
