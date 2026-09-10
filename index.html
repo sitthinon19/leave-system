@@ -328,10 +328,14 @@
       <input type="text" id="regEmployeeName" required>
 
       <label>แผนก *</label>
-      <input type="text" id="regDepartment" required>
+      <select id="regDepartment" required>
+        <option value="">-- เลือกแผนก --</option>
+      </select>
 
       <label>ตำแหน่ง</label>
-      <input type="text" id="regPosition">
+      <select id="regPosition">
+        <option value="">-- เลือกตำแหน่ง --</option>
+      </select>
 
       <label>หัวหน้างาน Level 1</label>
       <select id="regSupervisor1">
@@ -432,11 +436,12 @@
 
 <script>
   const LIFF_ID = '2011333828-5qZ3k9TW';
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyziwBne15TTHAMQEDZGBBOCVkeMmzQH8nbZPzm_83X9P702Hy4Aq06fa6Ebf9Mj2v21Q/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyDd80qKVJMpgSyiMfYcaRLGmei_nHta4ErC_ivrQ3YFc8XysyRiVi5y0B4n_i0OBFhyw/exec';
 
   let idToken = null;
   let liffReady = false;
   let supervisorList = [];
+  let registrationOptions = { departments: [], positions: [] };
   let leaveBalances = [];
   let rejectToken = '';
   let leavePeriod = 'FULL';
@@ -591,6 +596,11 @@
       } else if (result.status === 'not_found') {
         supervisorList = result.supervisors || [];
         renderSupervisorOptions();
+        try {
+          await loadRegistrationOptions();
+        } catch (optionError) {
+          showMessageIn('registerMessage', optionError.message || 'ไม่สามารถโหลดแผนก/ตำแหน่งได้', false);
+        }
         document.getElementById('registerForm').style.display = 'block';
       }
     } catch (error) {
@@ -601,6 +611,67 @@
         false
       );
       document.getElementById('registerForm').style.display = 'block';
+    }
+  }
+
+  /***********************************************
+   * โหลด Department / Position จาก Master Sheet
+   * แสดงเฉพาะ Active = TRUE
+   ***********************************************/
+  async function loadRegistrationOptions() {
+    const result = await apiCall({
+      action: 'getRegistrationOptions',
+      idToken: idToken
+    });
+
+    if (!result || !result.success) {
+      throw new Error(result && result.message ? result.message : 'ไม่สามารถโหลดรายการแผนก/ตำแหน่งได้');
+    }
+
+    registrationOptions = {
+      departments: Array.isArray(result.departments) ? result.departments : [],
+      positions: Array.isArray(result.positions) ? result.positions : []
+    };
+
+    renderRegistrationOptions();
+  }
+
+  function renderRegistrationOptions() {
+    const dep = document.getElementById('regDepartment');
+    const pos = document.getElementById('regPosition');
+    if (!dep || !pos) return;
+
+    dep.innerHTML = '<option value="">-- เลือกแผนก --</option>';
+    pos.innerHTML = '<option value="">-- เลือกตำแหน่ง --</option>';
+
+    registrationOptions.departments.forEach(function(name) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      dep.appendChild(opt);
+    });
+
+    registrationOptions.positions.forEach(function(name) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      pos.appendChild(opt);
+    });
+
+    if (!registrationOptions.departments.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'ยังไม่มีแผนกที่เปิดใช้งาน';
+      opt.disabled = true;
+      dep.appendChild(opt);
+    }
+
+    if (!registrationOptions.positions.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'ยังไม่มีตำแหน่งที่เปิดใช้งาน';
+      opt.disabled = true;
+      pos.appendChild(opt);
     }
   }
 
