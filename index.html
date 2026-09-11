@@ -210,29 +210,39 @@
 
     /* วันที่เริ่มลา + วันที่สิ้นสุด ให้อยู่บรรทัดเดียวกัน */
     /* แยกช่องวันที่ให้มีพื้นที่ตรงกลางมากขึ้น */
-    .date-range{
-  display:grid;
-  grid-template-columns:40% 40%;
-  justify-content:start;
-  gap:46px;
-  width:100%;
-  max-width:100%;
-  margin-top:2px;
-  box-sizing:border-box;
-}
-.date-field{
-  min-width:0;
-  width:100%;
-  max-width:100%;
-  box-sizing:border-box;
-}
-.date-field input[type="date"]{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  box-sizing:border-box;
-}
+    .date-range {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .date-field {
+      flex: 0 1 45%;
+      width: 45%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .date-field label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      font-size: 16px;
+    }
+
+    .date-field input[type="date"] {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 9px 5px;
+      font-size: 14px;
+    }
 
     @media (max-width: 420px) {
       .date-range {
@@ -304,10 +314,32 @@
     .history-row{font-size:14px;margin:5px 0;color:#444}.history-label{color:#888}.history-empty{text-align:center;padding:28px 10px;color:#888}
     @media(max-width:430px){.history-filter{grid-template-columns:1fr}.history-top{align-items:flex-start}.status-badge{font-size:11px}}
 
-/* Leave history month selector: approximately 95% width */
+/* Restore original leave date fields layout */
+.date-range{
+  display:flex !important;
+  justify-content:space-between !important;
+  align-items:flex-start !important;
+  gap:24px !important;
+  width:100% !important;
+  box-sizing:border-box;
+}
+.date-field{
+  flex:0 1 45% !important;
+  width:45% !important;
+  min-width:0 !important;
+  box-sizing:border-box;
+}
+.date-field input[type="date"]{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+/* Leave history month selector: approximately 90% */
 #historyMonth{
-  width:95% !important;
-  max-width:95% !important;
+  width:90% !important;
+  max-width:90% !important;
   box-sizing:border-box;
 }
 </style>
