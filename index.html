@@ -235,14 +235,15 @@
     }
 
     .date-field input[type="date"] {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      box-sizing: border-box;
-      padding: 9px 5px;
-      font-size: 14px;
-    }
+	  display: block;
+	  width: 100%;
+	  max-width: 100%;
+	  min-width: 0;
+	  height: 42px;
+	  padding: 8px 5px;
+	  font-size: 14px;
+	  box-sizing: border-box;
+	}
 
     @media (max-width: 420px) {
       .date-range {
@@ -259,9 +260,11 @@
       }
 
       .date-field input[type="date"] {
-        padding: 8px 4px;
-        font-size: 13px;
-      }
+		  height: 42px;
+		  padding: 7px 4px;
+		  font-size: 13px;
+		  box-sizing: border-box;
+		}
     }
 
     @media (max-width: 380px) {
@@ -333,12 +336,13 @@
   flex-basis:43% !important;
   width:43% !important;
 }
-.date-field input[type="date"]{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  box-sizing:border-box;
+.date-field input[type="date"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 42px !important;
+  box-sizing: border-box;
 }
 /* Leave history month selector: approximately 90% */
 #historyMonth{
