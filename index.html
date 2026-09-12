@@ -208,39 +208,41 @@
       line-height: 1.2;
     }
 
-    /* วันที่เริ่มลา + วันที่สิ้นสุด ให้อยู่บรรทัดเดียวกัน */
-    /* แยกช่องวันที่ให้มีพื้นที่ตรงกลางมากขึ้น */
-    .date-range {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 24px;
-      width: 92%;
-      box-sizing: border-box;
-    }
+	/* วันที่เริ่มลา + วันที่สิ้นสุด ให้อยู่บรรทัดเดียวกัน */
+	.date-range {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: flex-start;
+	  gap: 24px;
+	  width: 100%;
+	  box-sizing: border-box;
+	}
 
-    .date-field {
-      flex: 0 1 40%;
-      width: 40%;
-      min-width: 0;
-      box-sizing: border-box;
-    }
+	/* ขนาดกรอบของแต่ละช่อง */
+	.date-field {
+	  flex: 0 0 38%;
+	  width: 38%;
+	  min-width: 0;
+	  box-sizing: border-box;
+	}
 
-    .date-field label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 6px;
-      white-space: nowrap;
-      font-size: 16px;
-    }
-
-    .date-field input[type="date"] {
+	/* Label */
+	.date-field label {
 	  display: block;
-	  width: 92%;
-	  max-width: 92%;
+	  margin-top: 15px;
+	  margin-bottom: 6px;
+	  white-space: nowrap;
+	  font-size: 16px;
+	}
+
+	/* ช่องวันที่ */
+	.date-field input[type="date"] {
+	  display: block;
+	  width: 100%;
+	  max-width: 100%;
 	  min-width: 0;
 	  height: 28px;
-	  padding: 8px 5px;
+	  padding: 4px 5px;
 	  font-size: 14px;
 	  box-sizing: border-box;
 	}
