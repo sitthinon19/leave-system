@@ -210,11 +210,12 @@
 
 	/* ปรับช่องวันที่เริ่มลา + วันที่สิ้นสุด */
 	.date-range {
-	  display: flex !important;
-	  justify-content: space-between !important;
-	  align-items: flex-start !important;
-	  gap: 12px !important;
+	  display: grid !important;
+	  grid-template-columns: 40% 40% !important;
+	  justify-content: start !important;
+	  gap: 46px !important;
 	  width: 100% !important;
+	  max-width: 100% !important;
 	  box-sizing: border-box;
 	}
 
@@ -241,10 +242,12 @@
 		gap: 18px;
 	  }
 
-	  .date-field {
-		flex-basis: 40%;
-		width: 40%;
-	  }
+	.date-field {
+	  width: 100% !important;
+	  max-width: 100% !important;
+	  min-width: 0 !important;
+	  box-sizing: border-box;
+	}
 
 	  .date-field input[type="date"] {
 		height: 38px;
@@ -305,24 +308,25 @@
 
 /* Restore original leave date fields layout */
 .date-range{
-  display:flex !important;
-  justify-content:space-between !important;
-  align-items:flex-start !important;
-  gap:24px !important;
+  display:grid !important;
+  grid-template-columns:40% 40% !important;
+  justify-content:start !important;
+  gap:46px !important;
   width:100% !important;
+  max-width:100% !important;
   box-sizing:border-box;
 }
+
 .date-field{
-  flex:0 1 45% !important;
-  width:45% !important;
+  width:100% !important;
+  max-width:100% !important;
   min-width:0 !important;
   box-sizing:border-box;
 }
-.date-range > .date-field:last-child {
-  flex: 0 0 36% !important;
-  width: 36% !important;
-  min-width: 0 !important;
-  box-sizing: border-box !important;
+
+.date-range > .date-field:last-child{
+  width:100% !important;
+  max-width:100% !important;
 }
 .date-field input[type="date"] {
   display: block;
